@@ -13,6 +13,14 @@ takes
 { "urls":[list of urls] 
 }
 ```
+### Run the endpoint 
+
+Run the express node api with 
+
+```bash 
+npm install 
+npm start 
+```
 ### example curl request 
 
 ```bash 
