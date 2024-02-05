@@ -3,8 +3,8 @@ const fs = require('fs');
 const axios = require('axios');
 
 const mongoose = require('mongoose');
-const { UrlModel }  = require('model/ModelSchema.js');
-const { connect } = require('model/Connection.js');
+const { UrlModel }  = require('./model/ModelSchema.js');
+const { connect } = require('./model/Connection.js');
 
 let browser; // Declare the browser outside the functions to share it
 
@@ -12,20 +12,20 @@ async function databaseSync(urldata,summarydata)
 {
 
 
-const Urldump = new UrlModel({url:urldata,summary:summarydata})
 
 try {
 	
+	const Urldump = new UrlModel({url:urldata,summary:summarydata})
 	await Urldump.save().then(async ()=> {console.log(`url and summary of ${urldata} saved!`)
 
-	urlsdumps = await UrlModel.find()
-	console.log(`Url dumps => ${urlsdumps}`)
+	//urlsdumps = await UrlModel.find()
+	//console.log(`Url dumps => ${urlsdumps}`)
 	}).catch( async (error) =>
 		{
 
 		console.log('this error=>'+error)
-		urlsdumps = await UrlModel.find()
-		console.log(`Url dumps => ${urlsdumps}`)
+	//	urlsdumps = await UrlModel.find()
+	//	console.log(`Url dumps => ${urlsdumps}`)
 		})
   
 } catch (err) {
@@ -37,13 +37,9 @@ try {
     console.error('Unexpected error occurred while saving the URL.');
   }
 }
-finally{
-
-mongoose.connection.close().then(()=>{console.log('connection closed!')});
-}
-
 
 }
+
 async function summarizeFromText(textContent) {
   try {
 	// context length of llama is 4096 and mistral is 32768
@@ -71,7 +67,10 @@ async function scrapeAndSummarize(url) {
 
     await page.close();
     const summary = await summarizeFromText(content);
-    console.log(`\n\n summery of ${url} is =>${summary.response} \n\n`)
+
+  //Storing to database 
+    await databaseSync(url,summary.response)
+   // console.log(`\n\n summery of ${url} is =>${summary.response} \n\n`)
 
     return { url, content, summary };
   } catch (error) {
@@ -86,6 +85,7 @@ async function scrapeAndSummarizeAll(urls) {
 
     const results = await Promise.all(urls.map(url => scrapeAndSummarize(url)));
     return results;
+
   } catch (error) {
     console.error('Error during Promise.all:', error);
     return [];
@@ -119,5 +119,9 @@ scrapeAndSummarizeAll(urlList)
   })
   .catch((error) => {
     console.error('Error during scraping and summarization:', error);
+  }).finally(() => {
+
+mongoose.connection.close();
+
   });
 
