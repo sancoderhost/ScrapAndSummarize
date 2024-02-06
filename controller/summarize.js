@@ -119,13 +119,13 @@ const summarize = async (req,res) => {
 	{
 
 
+		const fileteredUrl = await fileterAlreadyIndbUrl(urls);
 		//const fileContent = fs.readFileSync('./content.txt', 'utf8');
 		if (!browser)
 		{
 			const browser = await puppeteer.launch();
 
 			//function to filter out already existing urls in db
-			const fileteredUrl = await fileterAlreadyIndbUrl(urls);
 
 			const results = await  scrapeWorker(fileteredUrl,browser)
 
@@ -133,7 +133,7 @@ const summarize = async (req,res) => {
 		}
 		else 
 		{
-			const results = await  scrapeWorker(urls,browser)
+			const results = await  scrapeWorker(fileteredUrl,browser)
 			res.status(200).json(results)
 		}
 	}
